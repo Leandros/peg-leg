@@ -222,6 +222,25 @@ static void usage(char *name)
   exit(1);
 }
 
+static char *escape_path(char const *path)
+{
+	int n;
+	char *ret;
+	char *tmp = (char *)path;
+	for (n = 0; *tmp; ++tmp)
+		if (*tmp == '\\')
+			n++;
+	if (n == 0)
+		return strdup(path);
+	if ((tmp = ret = malloc(strlen(path) + n + 1)) == NULL)
+		return NULL;
+	for (; *path; ++path, ++tmp)
+		if ((*tmp = *path) == '\\')
+			*++tmp = '\\';
+	*tmp = '\0';
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
   Node *n;
@@ -284,7 +303,8 @@ int main(int argc, char **argv)
 		  perror(*argv);
 		  exit(1);
 		}
-	      fileName= *argv;
+	      if ((fileName = escape_path(*argv)) == NULL)
+			  exit(1);
 	    }
 	  lineNumber= 1;
 	  if (!yyparse())
